@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TISA Type</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f0ede6;
+    --paper: #faf8f3;
+    --ink-black: #1a1a18;
+    --ink-red: #c0392b;
+    --muted: #9a9488;
+    --border: #d4cfc5;
+    --shadow: rgba(0,0,0,0.12);
+    --carriage-speed: 0.05s;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: 'Courier Prime', monospace;
+    color: var(--ink-black);
+    cursor: default;
+    user-select: none;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    padding: 3rem 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .site-title {
+    font-family: 'Special Elite', serif;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    color: var(--ink-black);
+    line-height: 1;
+  }
+
+  .site-title span {
+    color: var(--ink-red);
+  }
+
+  .blurb {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* snapshots preview */
+  .snapshots-section { flex: 1; display: flex; flex-direction: column; gap: 0.75rem; overflow: hidden; }
+
+  .snapshot-stack {
+    flex: 1;
+    position: relative;
+    min-height: 140px;
+    max-height: 200px;
+  }
+
+  .snapshot-preview-card {
+    position: absolute;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 12px var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 4px;
+  }
+
+  .snapshot-preview-card:nth-child(1) { width: 130px; height: 160px; left: 0; top: 10px; transform: rotate(-3deg); z-index: 1; }
+  .snapshot-preview-card:nth-child(2) { width: 130px; height: 160px; left: 30px; top: 0; transform: rotate(1deg); z-index: 2; }
+  .snapshot-preview-card:nth-child(3) { width: 130px; height: 160px; left: 65px; top: 15px; transform: rotate(3.5deg); z-index: 3; }
+
+  .snap-line { height: 1.5px; background: #ccc; border-radius: 2px; opacity: 0.6; }
+  .snap-line:nth-child(1) { width: 80%; }
+  .snap-line:nth-child(2) { width: 55%; }
+  .snap-line:nth-child(3) { width: 68%; }
+
+  .snapshots-link {
+    font-family: 'Caveat', cursive;
+    font-size: 1rem;
+    color: var(--ink-black);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    width: fit-content;
+  }
+  .snapshots-link:hover { color: var(--ink-red); }
+
+  /* presence */
+  .presence {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: 'Courier Prime', monospace;
+  }
+  .presence-dots { display: flex; gap: 4px; flex-wrap: wrap; }
+  .presence-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--ink-red);
+    opacity: 0.7;
+  }
+  .presence-dot.you { background: #6b9adb; opacity: 1; }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── TYPEWRITER MACHINE ── */
+  .typewriter-machine {
+    position: relative;
+    width: 620px;
+    height: 480px;
+    flex-shrink: 0;
+  }
+
+  /* PAPER SLOT AREA — sits between carriage and base */
+  .paper-slot {
+    position: absolute;
+    top: 68px;
+    left: 80px;
+    width: 460px;
+    height: 220px;
+    overflow: hidden;
+    z-index: 2;
+  }
+
+  .paper-scroll {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--paper);
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 12px 20px;
+    transition: transform var(--carriage-speed) linear;
+  }
+
+  .paper-lines { display: flex; flex-direction: column; gap: 0; }
+
+  .paper-line {
+    font-family: 'Courier Prime', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    height: 20px;
+    white-space: pre;
+    letter-spacing: 0.02em;
+  }
+
+  .paper-line.black { color: var(--ink-black); }
+  .paper-line.red { color: var(--ink-red); }
+
+  .cursor-line {
+    display: inline;
+  }
+  .cursor-blink {
+    display: inline-block;
+    width: 8px;
+    height: 13px;
+    background: var(--ink-black);
+    vertical-align: middle;
+    animation: blink 0.9s step-end infinite;
+    margin-left: 1px;
+  }
+  .cursor-blink.red { background: var(--ink-red); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* floating paper controls */
+  .paper-controls {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+  }
+
+  .ctrl-btn {
+    font-family: 'Caveat', cursive;
+    font-size: 0.82rem;
+    background: rgba(250,248,243,0.92);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    cursor: pointer;
+    color: var(--ink-black);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s;
+  }
+  .ctrl-btn:hover { background: white; }
+
+  .ink-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--ink-black);
+    display: inline-block;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .ink-dot.red { background: var(--ink-red); }
+
+  /* drag hint */
+  .drag-hint {
+    position: absolute;
+    top: 72px;
+    left: 90px;
+    font-family: 'Caveat', cursive;
+    font-size: 0.72rem;
+    color: var(--muted);
+    z-index: 15;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .drag-hint.show { opacity: 1; }
+
+  /* ── TYPEWRITER SVG LAYERS ── */
+  .tw-base {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .tw-carriage-wrap {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    width: 100%;
+    z-index: 3;
+    cursor: grab;
+    transition: transform 0.08s ease-out;
+  }
+  .tw-carriage-wrap:active { cursor: grabbing; }
+
+  .tw-carriage-svg {
+    width: 100%;
+    pointer-events: none;
+  }
+
+  /* key press flash */
+  .key-flash {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(80,80,80,0.18);
+    pointer-events: none;
+    animation: keyFlash 0.25s ease-out forwards;
+    z-index: 6;
+  }
+  @keyframes keyFlash { 0%{transform:scale(0);opacity:1} 100%{transform:scale(1.4);opacity:0} }
+
+  /* ── SNAPSHOT MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(240,237,230,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 680px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--muted);
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--ink-black); }
+
+  .modal-body {
+    overflow-y: auto;
+    padding: 1.5rem;
+    flex: 1;
+  }
+
+  .snap-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .snap-card {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 8px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .snap-card-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-height: 80px;
+  }
+
+  .snap-card-line {
+    font-family: 'Courier Prime', monospace;
+    font-size: 8px;
+    color: var(--ink-black);
+    white-space: pre;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.5;
+  }
+  .snap-card-line.red { color: var(--ink-red); }
+
+  .snap-card-time {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: 'Courier Prime', monospace;
+    margin-top: 6px;
+    border-top: 1px solid var(--border);
+    padding-top: 4px;
+  }
+
+  .no-snaps {
+    grid-column: 1/-1;
+    text-align: center;
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.85rem;
+    padding: 2rem 0;
+  }
+
+  /* ── TYPEWRITER DRAWN ── */
+  /* The typewriter is drawn with SVG inline — no external images needed */
+
+  /* sound ripple on typing */
+  @keyframes ripple {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+
+  /* line-end bell flash */
+  .bell-flash {
+    position: fixed;
+    top: 20px; right: 20px;
+    font-family: 'Caveat', cursive;
+    font-size: 0.85rem;
+    color: var(--ink-red);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .bell-flash.show { opacity: 1; }
+
+  /* scrollbar hide */
+  .modal-body::-webkit-scrollbar { width: 4px; }
+  .modal-body::-webkit-scrollbar-track { background: transparent; }
+  .modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- LEFT -->
+  <aside class="left-panel">
+    <div>
+      <div class="site-title">TISA <span>Type</span></div>
+    </div>
+    <p class="blurb">
+      Someone typed here before you.<br>
+      Someone will type here after you.<br>
+      Add your line. Leave it for the next person.
+    </p>
+    <div class="divider"></div>
+
+    <div class="snapshots-section">
+      <div class="snapshot-stack" id="snapPreviewStack">
+        <div class="snapshot-preview-card">
+          <div class="snap-line"></div><div class="snap-line"></div><div class="snap-line"></div>
+        </div>
+        <div class="snapshot-preview-card">
+          <div class="snap-line"></div><div class="snap-line"></div>
+        </div>
+        <div class="snapshot-preview-card">
+          <div class="snap-line"></div><div class="snap-line"></div><div class="snap-line"></div>
+        </div>
+      </div>
+      <a class="snapshots-link" id="openSnapshots">snapshots ›</a>
+    </div>
+
+    <div class="divider"></div>
+    <div class="presence">
+      <div class="presence-dots" id="presenceDots"></div>
+      <span id="presenceLabel">just you</span>
+    </div>
+  </aside>
+
+  <!-- RIGHT -->
+  <main class="right-panel">
+
+    <div class="typewriter-machine" id="machine">
+
+      <!-- PAPER SLOT -->
+      <div class="paper-slot" id="paperSlot">
+        <div class="paper-scroll" id="paperScroll">
+          <div class="paper-lines" id="paperLines"></div>
+        </div>
+        <!-- floating controls ON PAPER -->
+        <div class="paper-controls">
+          <button class="ctrl-btn" id="snapBtn">📷 take a snapshot</button>
+          <button class="ctrl-btn" id="inkBtn">
+            ink <span class="ink-dot" id="inkDot"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- DRAG HINT -->
+      <div class="drag-hint" id="dragHint">← drag carriage to return</div>
+
+      <!-- CARRIAGE (slides left while typing) -->
+      <div class="tw-carriage-wrap" id="carriageWrap">
+        <svg class="tw-carriage-svg" viewBox="0 0 620 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- carriage rail body -->
+          <rect x="40" y="28" width="540" height="22" rx="4" fill="#e8e3d8" stroke="#c0bab0" stroke-width="1.5"/>
+          <!-- rail grooves -->
+          <line x1="40" y1="35" x2="580" y2="35" stroke="#c0bab0" stroke-width="0.8"/>
+          <line x1="40" y1="43" x2="580" y2="43" stroke="#c0bab0" stroke-width="0.8"/>
+          <!-- tick marks -->
+          <g stroke="#b0aaa0" stroke-width="0.6">
+            <line x1="100" y1="28" x2="100" y2="50"/><line x1="150" y1="28" x2="150" y2="50"/>
+            <line x1="200" y1="28" x2="200" y2="50"/><line x1="250" y1="28" x2="250" y2="50"/>
+            <line x1="300" y1="28" x2="300" y2="50"/><line x1="350" y1="28" x2="350" y2="50"/>
+            <line x1="400" y1="28" x2="400" y2="50"/><line x1="450" y1="28" x2="450" y2="50"/>
+            <line x1="500" y1="28" x2="500" y2="50"/>
+          </g>
+          <!-- left knob -->
+          <circle cx="48" cy="60" r="18" fill="#d8d3c8" stroke="#b8b3a8" stroke-width="2"/>
+          <circle cx="48" cy="60" r="12" fill="#c8c3b8" stroke="#a8a39a" stroke-width="1.2"/>
+          <circle cx="48" cy="60" r="5" fill="#b0ab9e"/>
+          <!-- knob ridges left -->
+          <g stroke="#a8a39a" stroke-width="1">
+            <line x1="30" y1="60" x2="66" y2="60"/><line x1="48" y1="42" x2="48" y2="78"/>
+            <line x1="35" y1="47" x2="61" y2="73"/><line x1="61" y1="47" x2="35" y2="73"/>
+          </g>
+          <!-- right knob -->
+          <circle cx="572" cy="60" r="18" fill="#d8d3c8" stroke="#b8b3a8" stroke-width="2"/>
+          <circle cx="572" cy="60" r="12" fill="#c8c3b8" stroke="#a8a39a" stroke-width="1.2"/>
+          <circle cx="572" cy="60" r="5" fill="#b0ab9e"/>
+          <!-- knob ridges right -->
+          <g stroke="#a8a39a" stroke-width="1">
+            <line x1="554" y1="60" x2="590" y2="60"/><line x1="572" y1="42" x2="572" y2="78"/>
+            <line x1="559" y1="47" x2="585" y2="73"/><line x1="585" y1="47" x2="559" y2="73"/>
+          </g>
+          <!-- red accent tabs -->
+          <rect x="140" y="22" width="18" height="14" rx="2" fill="#c0392b"/>
+          <rect x="462" y="22" width="18" height="14" rx="2" fill="#c0392b"/>
+          <!-- paper guide -->
+          <rect x="240" y="15" width="140" height="8" rx="3" fill="#e0dbd0" stroke="#c8c3b5" stroke-width="1"/>
+          <!-- return lever -->
+          <path d="M62 28 Q50 10 38 5" stroke="#9a9488" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <circle cx="38" cy="5" r="5" fill="#b8b3a8"/>
+        </svg>
+      </div>
+
+      <!-- BASE (top layer visually, stays fixed) -->
+      <svg class="tw-base" viewBox="0 0 620 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- body -->
+        <rect x="30" y="180" width="560" height="270" rx="18" fill="#ede8df" stroke="#c8c3b5" stroke-width="2"/>
+        <!-- top red section -->
+        <rect x="30" y="130" width="560" height="110" rx="16" fill="#c0392b"/>
+        <!-- paper opening -->
+        <rect x="100" y="50" width="420" height="120" rx="8" fill="#d4cfc5" stroke="#b8b3a8" stroke-width="1.5"/>
+        <!-- paper opening inner -->
+        <rect x="110" y="58" width="400" height="104" rx="6" fill="#e8e5dd"/>
+        <!-- ROYAL badge -->
+        <rect x="265" y="195" width="90" height="22" rx="4" fill="#c0392b"/>
+        <text x="310" y="211" font-family="Courier Prime, monospace" font-size="11" font-weight="700" fill="white" text-anchor="middle" letter-spacing="2">ROYAL</text>
+        <!-- spacebar -->
+        <rect x="200" y="408" width="220" height="22" rx="6" fill="#ddd8ce" stroke="#c0bab0" stroke-width="1.5"/>
+        <!-- key rows -->
+        <!-- row 1 numbers -->
+        <g fill="#e8e3d8" stroke="#c0bab0" stroke-width="1.2">
+          <rect x="55" y="235" width="28" height="28" rx="14"/><rect x="90" y="235" width="28" height="28" rx="14"/>
+          <rect x="125" y="235" width="28" height="28" rx="14"/><rect x="160" y="235" width="28" height="28" rx="14"/>
+          <rect x="195" y="235" width="28" height="28" rx="14"/><rect x="230" y="235" width="28" height="28" rx="14"/>
+          <rect x="265" y="235" width="28" height="28" rx="14"/><rect x="300" y="235" width="28" height="28" rx="14"/>
+          <rect x="335" y="235" width="28" height="28" rx="14"/><rect x="370" y="235" width="28" height="28" rx="14"/>
+          <rect x="405" y="235" width="28" height="28" rx="14"/><rect x="440" y="235" width="28" height="28" rx="14"/>
+          <rect x="475" y="235" width="28" height="28" rx="14"/><rect x="510" y="235" width="28" height="28" rx="14"/>
+          <rect x="545" y="235" width="28" height="28" rx="14"/>
+        </g>
+        <!-- row 2 QWERTY -->
+        <g fill="#e8e3d8" stroke="#c0bab0" stroke-width="1.2">
+          <rect x="68" y="272" width="28" height="28" rx="14"/><rect x="103" y="272" width="28" height="28" rx="14"/>
+          <rect x="138" y="272" width="28" height="28" rx="14"/><rect x="173" y="272" width="28" height="28" rx="14"/>
+          <rect x="208" y="272" width="28" height="28" rx="14"/><rect x="243" y="272" width="28" height="28" rx="14"/>
+          <rect x="278" y="272" width="28" height="28" rx="14"/><rect x="313" y="272" width="28" height="28" rx="14"/>
+          <rect x="348" y="272" width="28" height="28" rx="14"/><rect x="383" y="272" width="28" height="28" rx="14"/>
+          <rect x="418" y="272" width="28" height="28" rx="14"/><rect x="453" y="272" width="28" height="28" rx="14"/>
+          <rect x="488" y="272" width="28" height="28" rx="14"/><rect x="523" y="272" width="28" height="28" rx="14"/>
+        </g>
+        <!-- row 3 ASDF -->
+        <g fill="#e8e3d8" stroke="#c0bab0" stroke-width="1.2">
+          <rect x="80" y="309" width="28" height="28" rx="14"/><rect x="115" y="309" width="28" height="28" rx="14"/>
+          <rect x="150" y="309" width="28" height="28" rx="14"/><rect x="185" y="309" width="28" height="28" rx="14"/>
+          <rect x="220" y="309" width="28" height="28" rx="14"/><rect x="255" y="309" width="28" height="28" rx="14"/>
+          <rect x="290" y="309" width="28" height="28" rx="14"/><rect x="325" y="309" width="28" height="28" rx="14"/>
+          <rect x="360" y="309" width="28" height="28" rx="14"/><rect x="395" y="309" width="28" height="28" rx="14"/>
+          <rect x="430" y="309" width="28" height="28" rx="14"/><rect x="465" y="309" width="28" height="28" rx="14"/>
+          <rect x="500" y="309" width="50" height="28" rx="14"/>
+        </g>
+        <!-- row 4 ZXCV -->
+        <g fill="#e8e3d8" stroke="#c0bab0" stroke-width="1.2">
+          <rect x="100" y="346" width="28" height="28" rx="14"/><rect x="135" y="346" width="28" height="28" rx="14"/>
+          <rect x="170" y="346" width="28" height="28" rx="14"/><rect x="205" y="346" width="28" height="28" rx="14"/>
+          <rect x="240" y="346" width="28" height="28" rx="14"/><rect x="275" y="346" width="28" height="28" rx="14"/>
+          <rect x="310" y="346" width="28" height="28" rx="14"/><rect x="345" y="346" width="28" height="28" rx="14"/>
+          <rect x="380" y="346" width="28" height="28" rx="14"/><rect x="415" y="346" width="28" height="28" rx="14"/>
+          <rect x="450" y="346" width="28" height="28" rx="14"/>
+        </g>
+        <!-- left side buttons -->
+        <rect x="40" y="195" width="40" height="16" rx="4" fill="#ddd8ce" stroke="#c0bab0" stroke-width="1"/>
+        <rect x="540" y="195" width="40" height="16" rx="4" fill="#ddd8ce" stroke="#c0bab0" stroke-width="1"/>
+      </svg>
+
+      <!-- KEY FLASH CONTAINER -->
+      <div id="keyFlashContainer" style="position:absolute;inset:0;z-index:7;pointer-events:none;overflow:hidden;"></div>
+
+    </div><!-- /machine -->
+
+    <!-- bell -->
+    <div class="bell-flash" id="bellFlash">↵ return carriage</div>
+
+  </main>
+</div>
+
+<!-- SNAPSHOT MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">snapshots</span>
+      <button class="modal-close" id="closeModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="snap-grid" id="snapGrid">
+        <p class="no-snaps">no snapshots yet.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCHqeFws6ZCkb2OPLwB4n6jRl9xhxm6s8Q",
+  authDomain: "tisa-type.firebaseapp.com",
+  databaseURL: "https://tisa-type-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tisa-type",
+  storageBucket: "tisa-type.firebasestorage.app",
+  messagingSenderId: "592301487336",
+  appId: "1:592301487336:web:ae43e2dc6ae66a279c055d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const rtdb = getDatabase(app);
+const auth = getAuth(app);
+
+// ── STATE ──
+const CHARS_PER_LINE = 48;
+const CHAR_WIDTH = 8; // px per char for carriage movement
+const MAX_CARRIAGE_OFFSET = CHARS_PER_LINE * CHAR_WIDTH; // px
+
+let uid = null;
+let inkColor = 'black';
+let lines = []; // [{text, color}]
+let currentLine = '';
+let currentColor = 'black';
+let carriageOffset = 0; // px from left (0 = max right = start)
+let isDragging = false;
+let dragStartX = 0;
+let dragStartOffset = 0;
+let isSyncing = false;
+
+// ── DOM ──
+const paperLines = document.getElementById('paperLines');
+const carriageWrap = document.getElementById('carriageWrap');
+const inkDot = document.getElementById('inkDot');
+const inkBtn = document.getElementById('inkBtn');
+const snapBtn = document.getElementById('snapBtn');
+const modalOverlay = document.getElementById('modalOverlay');
+const closeModal = document.getElementById('closeModal');
+const openSnapshots = document.getElementById('openSnapshots');
+const snapGrid = document.getElementById('snapGrid');
+const bellFlash = document.getElementById('bellFlash');
+const presenceDots = document.getElementById('presenceDots');
+const presenceLabel = document.getElementById('presenceLabel');
+const dragHint = document.getElementById('dragHint');
+const keyFlashContainer = document.getElementById('keyFlashContainer');
+
+// ── AUTH ──
+signInAnonymously(auth).then(result => {
+  uid = result.user.uid;
+  setupPresence();
+  loadPaper();
+  listenSnapshots();
+}).catch(console.error);
+
+// ── PRESENCE ──
+function setupPresence() {
+  const presRef = ref(rtdb, `presence/${uid}`);
+  set(presRef, { online: true, ts: serverTimestamp() });
+  onDisconnect(presRef).remove();
+
+  onValue(ref(rtdb, 'presence'), snap => {
+    const data = snap.val() || {};
+    const users = Object.keys(data);
+    const count = users.length;
+    presenceDots.innerHTML = '';
+    users.forEach(u => {
+      const d = document.createElement('div');
+      d.className = 'presence-dot' + (u === uid ? ' you' : '');
+      presenceDots.appendChild(d);
+    });
+    presenceLabel.textContent = count === 1 ? 'just you' : `${count} people here`;
+  });
+}
+
+// ── PAPER / FIRESTORE ──
+const paperDocRef = doc(db, 'shared', 'paper');
+
+async function loadPaper() {
+  const snap = await getDoc(paperDocRef);
+  if (snap.exists()) {
+    lines = snap.data().lines || [];
+  } else {
+    lines = [];
+  }
+  renderPaper();
+}
+
+onSnapshot(paperDocRef, snap => {
+  if (!snap.exists()) return;
+  if (isSyncing) return;
+  const remote = snap.data().lines || [];
+  // merge: keep local current line, update completed lines
+  lines = remote;
+  renderPaper();
+});
+
+async function savePaper() {
+  isSyncing = true;
+  const allLines = [...lines];
+  await setDoc(paperDocRef, { lines: allLines }, { merge: false });
+  isSyncing = false;
+}
+
+function renderPaper() {
+  paperLines.innerHTML = '';
+  const allLines = [...lines];
+  if (currentLine !== '') {
+    allLines.push({ text: currentLine, color: currentColor, cursor: true });
+  } else {
+    allLines.push({ text: '', color: currentColor, cursor: true });
+  }
+
+  allLines.forEach((l, i) => {
+    const div = document.createElement('div');
+    div.className = `paper-line ${l.color || 'black'}`;
+    if (l.cursor) {
+      const span = document.createElement('span');
+      span.className = 'cursor-line';
+      span.textContent = l.text;
+      const cur = document.createElement('span');
+      cur.className = `cursor-blink ${currentColor}`;
+      div.appendChild(span);
+      div.appendChild(cur);
+    } else {
+      div.textContent = l.text;
+    }
+    paperLines.appendChild(div);
+  });
+
+  // scroll paper up as lines accumulate
+  const paperScroll = document.getElementById('paperScroll');
+  const totalLines = allLines.length;
+  const slotHeight = 220;
+  const lineH = 20;
+  const contentH = totalLines * lineH;
+  if (contentH > slotHeight) {
+    paperScroll.style.transform = `translateY(-${contentH - slotHeight}px)`;
+  } else {
+    paperScroll.style.transform = '';
+  }
+}
+
+// ── CARRIAGE MOVEMENT ──
+function setCarriageOffset(offset) {
+  carriageOffset = Math.max(0, Math.min(offset, MAX_CARRIAGE_OFFSET));
+  // carriage moves LEFT as offset increases
+  carriageWrap.style.transform = `translateX(-${carriageOffset}px)`;
+}
+
+function advanceCarriage() {
+  setCarriageOffset(carriageOffset + CHAR_WIDTH);
+  // show drag hint near line end
+  if (carriageOffset > MAX_CARRIAGE_OFFSET * 0.75) {
+    dragHint.classList.add('show');
+  }
+  if (carriageOffset >= MAX_CARRIAGE_OFFSET) {
+    showBell();
+  }
+}
+
+function returnCarriage() {
+  // save current line
+  if (currentLine !== '' || lines.length > 0) {
+    lines.push({ text: currentLine, color: currentColor });
+    currentLine = '';
+    savePaper();
+  }
+  setCarriageOffset(0);
+  dragHint.classList.remove('show');
+  renderPaper();
+  // animate return snap
+  carriageWrap.style.transition = 'transform 0.35s cubic-bezier(0.25,1.5,0.5,1)';
+  setTimeout(() => { carriageWrap.style.transition = ''; }, 400);
+}
+
+function showBell() {
+  bellFlash.classList.add('show');
+  setTimeout(() => bellFlash.classList.remove('show'), 2000);
+}
+
+// ── DRAG CARRIAGE ──
+carriageWrap.addEventListener('mousedown', e => {
+  isDragging = true;
+  dragStartX = e.clientX;
+  dragStartOffset = carriageOffset;
+  carriageWrap.style.transition = 'none';
+  document.body.style.cursor = 'grabbing';
+});
+
+document.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const dx = e.clientX - dragStartX;
+  // dragging RIGHT = decreasing offset (carriage moves right = return)
+  const newOffset = dragStartOffset - dx;
+  setCarriageOffset(newOffset);
+});
+
+document.addEventListener('mouseup', e => {
+  if (!isDragging) return;
+  isDragging = false;
+  document.body.style.cursor = '';
+  carriageWrap.style.transition = '';
+  // if dragged right enough (offset < 30%), do carriage return
+  if (carriageOffset < MAX_CARRIAGE_OFFSET * 0.3) {
+    returnCarriage();
+  }
+});
+
+// touch drag
+carriageWrap.addEventListener('touchstart', e => {
+  isDragging = true;
+  dragStartX = e.touches[0].clientX;
+  dragStartOffset = carriageOffset;
+});
+document.addEventListener('touchmove', e => {
+  if (!isDragging) return;
+  const dx = e.touches[0].clientX - dragStartX;
+  setCarriageOffset(dragStartOffset - dx);
+});
+document.addEventListener('touchend', () => {
+  if (!isDragging) return;
+  isDragging = false;
+  if (carriageOffset < MAX_CARRIAGE_OFFSET * 0.3) returnCarriage();
+});
+
+// ── KEYBOARD ──
+const ALLOWED_KEYS = /^[ -~]$/; // printable ASCII
+
+document.addEventListener('keydown', e => {
+  if (modalOverlay.classList.contains('open')) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+  if (e.key === 'Enter') {
+    returnCarriage();
+    return;
+  }
+
+  if (e.key === 'Backspace') {
+    if (currentLine.length > 0) {
+      currentLine = currentLine.slice(0, -1);
+      setCarriageOffset(carriageOffset - CHAR_WIDTH);
+      renderPaper();
+    }
+    return;
+  }
+
+  if (!ALLOWED_KEYS.test(e.key)) return;
+  if (carriageOffset >= MAX_CARRIAGE_OFFSET) { showBell(); return; }
+
+  currentLine += e.key;
+  advanceCarriage();
+  renderPaper();
+  spawnKeyFlash(e.key);
+});
+
+// ── KEY FLASH ON BASE ──
+// Map key zones to approximate positions on the base SVG
+const keyPositions = {
+  rows: [
+    { keys: '1234567890-=', y: 249, startX: 69, gap: 35 },
+    { keys: 'qwertyuiop[]', y: 286, startX: 82, gap: 35 },
+    { keys: "asdfghjkl;'", y: 323, startX: 94, gap: 35 },
+    { keys: 'zxcvbnm,./', y: 360, startX: 114, gap: 35 },
+  ]
+};
+
+function getKeyPos(key) {
+  const k = key.toLowerCase();
+  for (const row of keyPositions.rows) {
+    const idx = row.keys.indexOf(k);
+    if (idx !== -1) {
+      return { x: row.startX + idx * row.gap, y: row.y };
+    }
+  }
+  if (key === ' ') return { x: 310, y: 419 };
+  return null;
+}
+
+function spawnKeyFlash(key) {
+  const pos = getKeyPos(key);
+  if (!pos) return;
+  const el = document.createElement('div');
+  el.className = 'key-flash';
+  el.style.cssText = `width:28px;height:28px;left:${pos.x - 14}px;top:${pos.y - 14}px;`;
+  keyFlashContainer.appendChild(el);
+  setTimeout(() => el.remove(), 280);
+}
+
+// ── INK TOGGLE ──
+inkBtn.addEventListener('click', () => {
+  currentColor = currentColor === 'black' ? 'red' : 'black';
+  inkDot.className = 'ink-dot' + (currentColor === 'red' ? ' red' : '');
+});
+
+// ── SNAPSHOTS ──
+const snapshotsCol = collection(db, 'snapshots');
+
+snapBtn.addEventListener('click', async () => {
+  // capture last 15 lines + current line
+  const allLines = [...lines];
+  if (currentLine) allLines.push({ text: currentLine, color: currentColor });
+  const last15 = allLines.slice(-15);
+  if (last15.length === 0) return;
+
+  await addDoc(snapshotsCol, {
+    lines: last15,
+    capturedAt: new Date().toISOString(),
+    uid
+  });
+
+  // flash button
+  snapBtn.textContent = '✓ snapped!';
+  setTimeout(() => { snapBtn.innerHTML = '📷 take a snapshot'; }, 1500);
+});
+
+async function listenSnapshots() {
+  const q = query(snapshotsCol, orderBy('capturedAt', 'desc'));
+  onSnapshot(q, snap => {
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderSnapGrid(docs);
+    renderSnapPreview(docs);
+  });
+}
+
+function renderSnapGrid(docs) {
+  snapGrid.innerHTML = '';
+  if (docs.length === 0) {
+    snapGrid.innerHTML = '<p class="no-snaps">no snapshots yet.</p>';
+    return;
+  }
+  docs.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'snap-card';
+    const linesDiv = document.createElement('div');
+    linesDiv.className = 'snap-card-lines';
+    (s.lines || []).forEach(l => {
+      const p = document.createElement('div');
+      p.className = `snap-card-line ${l.color || 'black'}`;
+      p.textContent = l.text || ' ';
+      linesDiv.appendChild(p);
+    });
+    const time = document.createElement('div');
+    time.className = 'snap-card-time';
+    time.textContent = formatTime(s.capturedAt);
+    card.appendChild(linesDiv);
+    card.appendChild(time);
+    snapGrid.appendChild(card);
+  });
+}
+
+function renderSnapPreview(docs) {
+  const stack = document.getElementById('snapPreviewStack');
+  if (docs.length === 0) return;
+  const latest = docs.slice(0, 3);
+  stack.innerHTML = '';
+  latest.reverse().forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'snapshot-preview-card';
+    (s.lines || []).slice(0, 3).forEach(l => {
+      const line = document.createElement('div');
+      line.className = 'snap-line';
+      card.appendChild(line);
+    });
+    stack.appendChild(card);
+  });
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', { month: 'long', day: 'numeric' }) + ' ' +
+    d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+// ── MODAL ──
+openSnapshots.addEventListener('click', () => modalOverlay.classList.add('open'));
+closeModal.addEventListener('click', () => modalOverlay.classList.remove('open'));
+modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('open'); });
+
+// ── INIT CARRIAGE ──
+setCarriageOffset(0);
+renderPaper();
+</script>
+</body>
+</html>
